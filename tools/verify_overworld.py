@@ -7,7 +7,7 @@
           FillPlayAreaAttrs ($83D7), bank 5, on emu-harness's 6502 core for all 128 room ids, and
           compare PlayAreaTiles ($6530) and PlayAreaAttrs ($530) with the decoder.
 
-The battery save is moved aside by emu-harness (Saves/emu-harness-backup/), never deleted.
+The run powers on with no battery save; emu-harness puts back the save Mesen held afterwards.
 2026-10-26: live EXACT on $77 (also $67 $76 $78 walked by hand), code EXACT 128/128.
 
   py -3.14 tools/verify_overworld.py [rom]
@@ -20,23 +20,14 @@ from pathlib import Path
 from emu_harness.cpu.m6502.cpu import CPU6502
 from emu_harness.machines.nes import NES, ppu
 from emu_harness.machines.nes.canvas import Canvas
+from emu_harness.machines.nes.live import PPUSnapshot, run
 
 import overworld as OW
 
 LAYOUT_ROOM_OW, FILL_PLAY_AREA_ATTRS, DONE = 0xA9F4, 0x83D7, 0xFFF0
 PLAY_AREA_TILES, PLAY_AREA_ATTRS, ROOM_ID = 0x6530, 0x530, 0xEB
 # Power-on -> overworld: title, Start; REGISTER YOUR NAME; "AAA"; Select x3 to END, Start; file 1.
-BOOT = [("wait", 120), ("start", 1), ("wait", 30), ("start", 1), ("wait", 30), ("a", 3),
-        ("select", 3), ("start", 1), ("wait", 40), ("start", 1), ("wait", 200)]
-
-
-def boot(m):
-    for b, n in BOOT:
-        if b == "wait":
-            m.step(frames=n)
-        else:
-            for _ in range(n):
-                m.step([b], frames=4); m.step(frames=20)
+BOOT = "wait*120,start,wait*30,start,wait*30,a*3,select*3,start,wait*40,start,wait*200"
 
 
 class _Mem:
@@ -78,11 +69,12 @@ def main():
     rom = Path(sys.argv[1]) if len(sys.argv) > 1 else OW.ROM
     p = OW.prg(rom)
     with NES(rom) as m:
-        boot(m)
+        run(m, BOOT)
         room = m.ram(ROOM_ID)[0]
-        live = Canvas.from_nametable(m.read("nesNametableRam", 0, 0x400)).crop(0, 8, 32, 22)
-        chr_live, pal = m.read("nesChrRam", 0x1000, 0x1000), list(m.read("nesPaletteRam", 0, 16))
+        snap = PPUSnapshot.capture(m)
         ram, wram = m.ram(0, 0x800), m.ram(0x6000, 0x2000)
+    live = snap.page(0).crop(0, 8, 32, 22)
+    chr_live, pal = snap.chr[0x1000:0x2000], list(snap.palette[:16])
     checks = {f"live room {room:02x} tiles+subpal": OW.screen(p, room) == live,
               "live pattern table $1000": OW.bg_chr(p) == chr_live,
               "live BG palette": OW.bg_palette(p) == pal}
