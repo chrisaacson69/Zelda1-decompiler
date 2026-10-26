@@ -1,0 +1,7 @@
+# ROM images, saves and states are never committed (copyright; you supply your own)
+*.nes
+*.sav
+*.mss
+# renders are regenerated from the ROM (tools/overworld.py), never committed
+*.png
+__pycache__/
