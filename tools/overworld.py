@@ -17,7 +17,7 @@ aldonunez's zelda1-disassembly (PRG0; the tables below sit at the same offsets i
 Secrets render unfound (they depend on the save's world flags). Play area only: 32 x 22 tiles per
 screen, no status bar. Runs on py -3.14 (emu-harness).
 
-  py -3.14 tools/overworld.py [rom] [out.png] [--scale N] [--grid]
+  py -3.14 tools/overworld.py [rom] [out.png] [--scale N] [--grid]   (default assets/overworld.png)
 """
 from __future__ import annotations
 
@@ -27,8 +27,7 @@ from pathlib import Path
 from emu_harness.machines.nes import ppu
 from emu_harness.machines.nes.canvas import Canvas
 
-ROOT = Path(__file__).resolve().parent.parent
-ROM = ROOT / "Legend of Zelda, The (USA) (Rev 1).nes"
+from paths import ASSETS, ROM
 
 # PRG offsets (no iNES header), from the disassembly's bins.xml and labels; verified in both revs.
 ROOM_LAYOUTS_OW = 0x15418           # Z_05 RoomLayoutsOW: $10 bytes per layout
@@ -140,7 +139,7 @@ def world(p: bytes) -> Canvas:
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("rom", nargs="?", default=str(ROM))
-    ap.add_argument("out", nargs="?", default=str(ROOT / "overworld.png"))
+    ap.add_argument("out", nargs="?", default=str(ASSETS / "overworld.png"))
     ap.add_argument("--scale", type=int, default=1)
     ap.add_argument("--grid", action="store_true", help="mark screen edges")
     a = ap.parse_args()

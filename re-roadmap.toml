@@ -1,0 +1,20 @@
+# re-roadmap.toml: where Zelda stands, read by `py -3.14 -m emu_harness status Zelda1-decompiler`.
+# Phases and gates: emu-harness PHASES.md. A phase left out is "todo". Started 2026-10-29 as the
+# skeleton for the full pass (the standard layout and the ROM store); only the overworld exists yet.
+
+[project]
+name    = "The Legend of Zelda (NES, USA Rev 1)"
+track   = "native"
+machine = "nes"
+profile = ""            # none: tools/paths.py holds the ROM's name and hash
+entry   = ["README.md"]
+
+[phase.assets]
+status   = "partial"
+gate     = "The overworld only: tools/overworld.py converts LayoutRoomOW / WriteSquareOW / FillPlayAreaAttrs and draws all 128 screens on the emu-harness canvas. tools/verify_overworld.py checks it two ways below the decoder: Mesen's live PPU at the start screen (room 77 tiles + subpalettes, pattern table $1000, BG palette EXACT) and the ROM's own LayoutRoomOW ($A9F4) run on the harness 6502 for every room id (EXACT 128/128). Rerun 2026-10-29 after the layout move, from a foreign cwd with the ROM only in the store: identical, renders byte-identical."
+checked  = "2026-10-29"
+toolset  = "ecec190"
+evidence = ["tools/overworld.py", "tools/verify_overworld.py"]
+
+[next]
+session = "Classify and recon (PHASES.md 1-2): MMC1, 128 KiB PRG, battery (the header); the first banked native title, so the second consumer for MIGRATION.md's native drivers (discover, xrefs). aldonunez's zelda1-disassembly is a sibling oracle: grade after, never derive from."

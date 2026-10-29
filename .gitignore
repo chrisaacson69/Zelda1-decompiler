@@ -5,3 +5,7 @@
 # renders are regenerated from the ROM (tools/overworld.py), never committed
 *.png
 __pycache__/
+# captures (traces/) and working scratch; rendered audio when the sound lane runs
+traces/
+_scratch/
+assets/sound/
